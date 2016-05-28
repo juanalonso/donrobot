@@ -13,6 +13,9 @@
 #define MAT_W          32
 #define MAT_H           8
 
+#define COL_MED        50
+#define COL_MIN        25
+
 enum presets {
   P_VOLUME,
   P_EYES,
@@ -27,15 +30,17 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MAT_W, MAT_H, LED_PIN,
 int maxMic, minMic, currMic;
 int EQBar;
 unsigned long timer;
-presets currentPreset = P_KITT;
+presets currentPreset = P_EYES;
 
 int p_kitt_xpos = MAT_W / 2;
 int p_kitt_delta = 1;
+boolean p_eyes_open = false;
 
 void setup() {
 
   Serial.begin(115200);
   matrix.begin();
+  randomSeed(analogRead(5));
 
   resetMicReadings();
 }
@@ -79,8 +84,8 @@ void patch_volume() {
     resetMicReadings();
 
     matrix.fillScreen(0);
-    matrix.fillRect(MAT_W - EQBar,         0, EQBar, MAT_H / 2, matrix.Color(25, 0, 0));
-    matrix.fillRect(            0, MAT_H / 2, EQBar, MAT_H / 2, matrix.Color(0, 0, 25));
+    matrix.fillRect(MAT_W - EQBar,         0, EQBar, MAT_H / 2, matrix.Color(COL_MIN, 0, 0));
+    matrix.fillRect(            0, MAT_H / 2, EQBar, MAT_H / 2, matrix.Color(0, 0, COL_MIN));
     matrix.show();
 
   }
@@ -98,12 +103,58 @@ void resetMicReadings() {
 
 void patch_eyes() {
 
-  matrix.fillScreen(0);
-  matrix.fillRect(MAT_W - EQBar, 0, EQBar, MAT_H / 2, matrix.Color(25, 0, 0));
-  matrix.fillRect(         0, MAT_H / 2, EQBar, MAT_H / 2, matrix.Color(0, 0, 25));
-  matrix.show();
+  if (p_eyes_open) {
 
-  delay(10);
+    if (millis() - timer >= TIMESPAN * 6) {
+
+      int pupil_x = random(0, 5);
+      int pupil_y = random(0, 5);
+
+      matrix.fillScreen(0);
+      drawOpenEye(4, pupil_x, pupil_y);
+      drawOpenEye(4 + MAT_W / 2, pupil_x, pupil_y);
+      matrix.show();
+
+      timer = millis();
+      p_eyes_open = !p_eyes_open;
+
+    }
+    
+  } else {
+    
+    if (millis() - timer >= TIMESPAN * 100) {
+
+      matrix.fillScreen(0);
+      drawClosedEye(4);
+      drawClosedEye(4 + MAT_W / 2);
+      matrix.show();
+
+      timer = millis();
+      p_eyes_open = !p_eyes_open;
+
+    }
+
+  }
+
+}
+
+
+void drawOpenEye(int eye_offset, int p_x, int p_y) {
+
+  p_x++;
+  p_y++;
+
+  matrix.drawFastHLine(eye_offset + 1,         0, 8 - 2, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+  matrix.drawFastHLine(eye_offset + 1,         7, 8 - 2, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+  matrix.drawFastVLine(eye_offset,         0 + 1, 8 - 2, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+  matrix.drawFastVLine(eye_offset + 8 - 1, 0 + 1, 8 - 2, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+  matrix.drawRect(eye_offset + p_x, p_y, 2, 2, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+}
+
+
+void drawClosedEye(int eye_offset) {
+  matrix.drawFastHLine(eye_offset, 3, 8, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+  matrix.drawFastHLine(eye_offset, 4, 8, matrix.Color(COL_MED, COL_MIN, COL_MIN));
 }
 
 
@@ -127,7 +178,7 @@ void patch_kitt() {
   matrix.drawFastVLine(p_kitt_xpos + 1, 0, MAT_H, matrix.Color(128, 0, 0));
   matrix.drawFastVLine(p_kitt_xpos + 2, 0, MAT_H, matrix.Color(64, 0, 0));
   matrix.show();
-  
+
   delay(10);
 
 }
