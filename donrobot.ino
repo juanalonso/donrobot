@@ -4,6 +4,7 @@
 
 #define LED_PIN         7
 #define MIC_PIN         0
+#define BUT_PIN         2
 
 #define TIMESPAN       25
 #define WEIGHT          1
@@ -16,12 +17,6 @@
 #define COL_MED        50
 #define COL_MIN        25
 
-enum presets {
-  P_VOLUME,
-  P_EYES,
-  P_KITT
-};
-
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MAT_W, MAT_H, LED_PIN,
                             NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
                             NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG,
@@ -30,17 +25,20 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MAT_W, MAT_H, LED_PIN,
 int maxMic, minMic, currMic;
 int EQBar;
 unsigned long timer;
-presets currentPreset = P_EYES;
+int currentPreset = 1;
+boolean button_was_pressed = false;
 
 int p_kitt_xpos = MAT_W / 2;
 int p_kitt_delta = 1;
-boolean p_eyes_open = false;
+boolean p_eyes_open = true;
 
 void setup() {
 
   Serial.begin(115200);
   matrix.begin();
   randomSeed(analogRead(5));
+  pinMode(BUT_PIN, INPUT);
+  digitalWrite(BUT_PIN, HIGH);
 
   resetMicReadings();
 }
@@ -48,14 +46,26 @@ void setup() {
 
 void loop() {
 
+  int button_pressed = !digitalRead(BUT_PIN);
+  if (!button_pressed && button_was_pressed) {
+    currentPreset++;
+    if (currentPreset > 3) {
+      currentPreset = 1;
+    } else if (currentPreset == 2) {
+      p_eyes_open = true;
+
+    }
+  }
+  button_was_pressed = button_pressed;
+
   switch (currentPreset) {
-    case P_VOLUME:
+    case 1:
       patch_volume();
       break;
-    case P_EYES:
+    case 2:
       patch_eyes();
       break;
-    case P_KITT:
+    case 3:
       patch_kitt();
       break;
   }
@@ -119,9 +129,9 @@ void patch_eyes() {
       p_eyes_open = !p_eyes_open;
 
     }
-    
+
   } else {
-    
+
     if (millis() - timer >= TIMESPAN * 100) {
 
       matrix.fillScreen(0);
@@ -179,6 +189,6 @@ void patch_kitt() {
   matrix.drawFastVLine(p_kitt_xpos + 2, 0, MAT_H, matrix.Color(64, 0, 0));
   matrix.show();
 
-  delay(10);
+  delay(25);
 
 }
