@@ -14,8 +14,8 @@
 #define MAT_W          32
 #define MAT_H           8
 
-#define COL_MED        50
-#define COL_MIN        25
+#define COL_MED        255
+#define COL_MIN        255
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MAT_W, MAT_H, LED_PIN,
                             NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
@@ -49,12 +49,14 @@ void loop() {
   int button_pressed = !digitalRead(BUT_PIN);
   if (!button_pressed && button_was_pressed) {
     currentPreset++;
-    if (currentPreset > 3) {
+    if (currentPreset > 4) {
       currentPreset = 1;
     } else if (currentPreset == 2) {
       p_eyes_open = true;
-
+    } else if (currentPreset == 4) {
+      patch_smiley();
     }
+    delay(25);
   }
   button_was_pressed = button_pressed;
 
@@ -67,6 +69,9 @@ void loop() {
       break;
     case 3:
       patch_kitt();
+      break;
+    case 4:
+      delay(25);
       break;
   }
 
@@ -192,3 +197,30 @@ void patch_kitt() {
   delay(25);
 
 }
+
+
+void patch_smiley() {
+
+  matrix.fillScreen(0);
+  drawSmiley(4);
+  drawSmiley(4 + MAT_W / 2);
+  matrix.show();
+
+}
+
+
+void drawSmiley(int eye_offset) {
+
+  matrix.drawFastHLine(eye_offset + 1,         0, 8 - 2, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawFastHLine(eye_offset + 1,         7, 8 - 2, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawFastVLine(eye_offset,         0 + 1, 8 - 2, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawFastVLine(eye_offset + 8 - 1, 0 + 1, 8 - 2, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawPixel    (eye_offset + 2, 2, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawPixel    (eye_offset + 2, 4, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawPixel    (eye_offset + 3, 5, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawPixel    (eye_offset + 4, 5, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawPixel    (eye_offset + 5, 4, matrix.Color(COL_MED, COL_MED, 0));
+  matrix.drawPixel    (eye_offset + 5, 2, matrix.Color(COL_MED, COL_MED, 0));
+  //matrix.drawRect(eye_offset + p_x, p_y, 2, 2, matrix.Color(COL_MED, COL_MIN, COL_MIN));
+}
+
