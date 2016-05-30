@@ -8,8 +8,8 @@
 
 #define TIMESPAN       25
 #define WEIGHT          1
-#define VOLUME_OFFSET   6
-#define VOLUME_DIVIDER 27
+#define VOLUME_OFFSET   1
+#define VOLUME_DIVIDER 16
 
 #define MAT_W          32
 #define MAT_H           8
@@ -94,13 +94,16 @@ void patch_volume() {
 
     EQBar = (maxMic - minMic) * WEIGHT + EQBar * (1.0 - WEIGHT);
     EQBar = EQBar / VOLUME_DIVIDER - VOLUME_OFFSET;
+    EQBar = constrain(EQBar, 0, 16);
     //Serial.println(EQBar);
 
     resetMicReadings();
 
     matrix.fillScreen(0);
-    matrix.fillRect(MAT_W - EQBar,         0, EQBar, MAT_H / 2, matrix.Color(COL_MIN, 0, 0));
-    matrix.fillRect(            0, MAT_H / 2, EQBar, MAT_H / 2, matrix.Color(0, 0, COL_MIN));
+    matrix.fillRect(MAT_W-EQBar, 0, EQBar, MAT_H, matrix.Color(COL_MIN, 0, 0));
+    matrix.fillRect(          0, 0, EQBar, MAT_H, matrix.Color(0, 0, COL_MIN));
+    matrix.drawRect( 7, 3, 2, 2, matrix.Color(0, 0, 0));
+    matrix.drawRect(23, 3, 2, 2, matrix.Color(0, 0, 0));
     matrix.show();
 
   }
