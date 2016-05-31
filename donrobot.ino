@@ -5,11 +5,12 @@
 #define LED_PIN         7
 #define MIC_PIN         0
 #define BUT_PIN         2
+#define POT_MIC         5
 
 #define TIMESPAN       25
 #define WEIGHT          1
 #define VOLUME_OFFSET   1
-#define VOLUME_DIVIDER 16
+//#define VOLUME_DIVIDER 16
 
 #define MAT_W          32
 #define MAT_H           8
@@ -23,7 +24,7 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MAT_W, MAT_H, LED_PIN,
                             NEO_GRB + NEO_KHZ800);
 
 int maxMic, minMic, currMic;
-int EQBar;
+int EQBar, VOLUME_DIVIDER;
 unsigned long timer;
 int currentPreset = 1;
 boolean button_was_pressed = false;
@@ -36,7 +37,7 @@ void setup() {
 
   Serial.begin(115200);
   matrix.begin();
-  randomSeed(analogRead(5));
+  randomSeed(analogRead(4));
   pinMode(BUT_PIN, INPUT);
   digitalWrite(BUT_PIN, HIGH);
 
@@ -45,6 +46,8 @@ void setup() {
 
 
 void loop() {
+
+  VOLUME_DIVIDER = map(analogRead(POT_MIC), 0, 1024, 5, 64);
 
   int button_pressed = !digitalRead(BUT_PIN);
   if (!button_pressed && button_was_pressed) {
@@ -75,6 +78,7 @@ void loop() {
       break;
   }
 
+
 }
 
 
@@ -100,7 +104,7 @@ void patch_volume() {
     resetMicReadings();
 
     matrix.fillScreen(0);
-    matrix.fillRect(MAT_W-EQBar, 0, EQBar, MAT_H, matrix.Color(COL_MIN, 0, 0));
+    matrix.fillRect(MAT_W - EQBar, 0, EQBar, MAT_H, matrix.Color(COL_MIN, 0, 0));
     matrix.fillRect(          0, 0, EQBar, MAT_H, matrix.Color(0, 0, COL_MIN));
     matrix.drawRect( 7, 3, 2, 2, matrix.Color(0, 0, 0));
     matrix.drawRect(23, 3, 2, 2, matrix.Color(0, 0, 0));
